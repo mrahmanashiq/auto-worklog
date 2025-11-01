@@ -125,10 +125,8 @@ def create_user(
     """Create a new user."""
     async def _create_user():
         from worklog_automation.core.database import get_async_session
+        from worklog_automation.core.security import hash_password
         from worklog_automation.models.user import User
-        from passlib.context import CryptContext
-        
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         
         async with get_async_session() as session:
             # Check if user exists
@@ -146,7 +144,7 @@ def create_user(
             user = User(
                 email=email,
                 username=username,
-                hashed_password=pwd_context.hash(password),
+                hashed_password=hash_password(password),
                 full_name=full_name,
             )
             
@@ -256,18 +254,16 @@ def dev_data() -> None:
     """Create development test data."""
     async def _create_dev_data():
         from worklog_automation.core.database import get_async_session
+        from worklog_automation.core.security import hash_password
         from worklog_automation.models.user import User
         from worklog_automation.models.project import Project
-        from passlib.context import CryptContext
-        
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         
         async with get_async_session() as session:
             # Create test user
             test_user = User(
                 email="test@example.com",
                 username="testuser",
-                hashed_password=pwd_context.hash("password123"),
+                hashed_password=hash_password("password123"),
                 full_name="Test User",
             )
             session.add(test_user)

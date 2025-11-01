@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
+from worklog_automation.api.v1.endpoints.auth import get_current_user
 from worklog_automation.core.database import get_session
 from worklog_automation.models.time_entry import TimeEntry, TimeEntryType
 from worklog_automation.models.user import User, WorkDayStatus
@@ -31,7 +32,7 @@ router = APIRouter()
 async def start_work_day(
     request: TrackingStartRequest = TrackingStartRequest(),
     session: AsyncSession = Depends(get_session),
-    # current_user: User = Depends(get_current_user),  # Will implement auth later
+    current_user: User = Depends(get_current_user),
 ) -> TrackingStatusResponse:
     """
     Start work day tracking.
@@ -39,18 +40,7 @@ async def start_work_day(
     Marks the beginning of the work day and optionally sets an initial activity.
     If work day is already started, returns current status.
     """
-    # TODO: Replace with actual current user from auth
-    user_id = UUID("12345678-1234-5678-9012-123456789012")  # Placeholder
-    
-    # Get user
-    result = await session.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+    user = current_user
     
     # Check if work day already started
     if user.current_day_status == WorkDayStatus.ACTIVE:
