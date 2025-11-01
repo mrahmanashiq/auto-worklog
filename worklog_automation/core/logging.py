@@ -111,6 +111,28 @@ def setup_logging() -> None:
         logging.INFO if settings.ACCESS_LOG else logging.WARNING
     )
     
+    # Integrate Loguru with Sentry (forward to Python logging for Sentry to capture)
+    if settings.SENTRY_ENABLE_LOGS and settings.SENTRY_DSN:
+        # Add a Loguru sink that forwards logs to Python logging for Sentry
+        def send_to_sentry(record):
+            """Forward logs to Sentry via Python logging module."""
+            try:
+                py_logger = logging.getLogger(record["name"])
+                level_name = record["level"].name
+                log_level = getattr(logging, level_name, logging.INFO)
+                py_logger.log(log_level, record["message"])
+            except Exception:
+                # Don't break logging if Sentry integration fails
+                pass
+            return True
+        
+        # Forward WARNING, ERROR, and CRITICAL logs to Sentry
+        logger.add(
+            send_to_sentry,
+            level="WARNING",
+            filter=lambda r: settings.SENTRY_ENABLE_LOGS and settings.SENTRY_DSN
+        )
+    
     logger.info(f"📝 Logging configured - Level: {settings.LOG_LEVEL}")
 
 

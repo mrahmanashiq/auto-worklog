@@ -109,7 +109,25 @@ class Settings(BaseSettings):
         default="INFO", description="Logging level"
     )
     ENABLE_METRICS: bool = Field(default=True, description="Enable Prometheus metrics")
-    SENTRY_DSN: str = Field(default="", description="Sentry DSN for error tracking")
+    SENTRY_DSN: str = Field(
+        default="https://bd24fed3765b2eb8bf520ff9c738db4c@o4510288704765952.ingest.us.sentry.io/4510288707649536",
+        description="Sentry DSN for error tracking"
+    )
+    SENTRY_SEND_DEFAULT_PII: bool = Field(
+        default=True, description="Send default PII (headers, IP) to Sentry"
+    )
+    SENTRY_ENABLE_LOGS: bool = Field(
+        default=True, description="Enable sending logs to Sentry"
+    )
+    SENTRY_TRACES_SAMPLE_RATE: float = Field(
+        default=1.0, description="Trace sample rate (0.0 to 1.0)"
+    )
+    SENTRY_PROFILE_SESSION_SAMPLE_RATE: float = Field(
+        default=1.0, description="Profile session sample rate (0.0 to 1.0)"
+    )
+    SENTRY_PROFILE_LIFECYCLE: str = Field(
+        default="trace", description="Profile lifecycle mode"
+    )
     
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = Field(default=True, description="Enable rate limiting")

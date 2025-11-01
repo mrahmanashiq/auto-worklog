@@ -8,6 +8,7 @@ middleware, routers, and startup/shutdown handlers.
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -66,6 +67,20 @@ def create_application() -> FastAPI:
     
     # Setup logging first
     setup_logging()
+    
+    # Initialize Sentry SDK before creating FastAPI app
+    if settings.SENTRY_DSN:
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            send_default_pii=settings.SENTRY_SEND_DEFAULT_PII,
+            enable_logs=settings.SENTRY_ENABLE_LOGS,
+            traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+            profile_session_sample_rate=settings.SENTRY_PROFILE_SESSION_SAMPLE_RATE,
+            profile_lifecycle=settings.SENTRY_PROFILE_LIFECYCLE,
+        )
+        logger.info("✅ Sentry SDK initialized")
+    else:
+        logger.warning("⚠️ Sentry DSN not configured, error tracking disabled")
     
     # Create FastAPI app
     app = FastAPI(
@@ -138,6 +153,17 @@ def create_application() -> FastAPI:
                 "health": "/health",
             }
         )
+    
+    # Sentry debug endpoint for testing integration
+    @app.get("/sentry-debug", tags=["debug"])
+    async def trigger_error() -> None:
+        """
+        Test endpoint to trigger an error for Sentry verification.
+        
+        This will create a transaction in Sentry Performance section
+        and send an error event connected to the transaction.
+        """
+        division_by_zero = 1 / 0  # noqa: F841
     
     logger.info("🏗️ FastAPI application created successfully")
     return app
