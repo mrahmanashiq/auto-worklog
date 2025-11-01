@@ -10,8 +10,8 @@ from uuid import UUID
 
 import bcrypt
 from jose import JWTError, jwt
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-from sqlmodel.ext.asyncio import AsyncSession
 
 from worklog_automation.core.config import get_settings
 from worklog_automation.models.user import User
